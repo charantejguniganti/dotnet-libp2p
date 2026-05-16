@@ -65,4 +65,11 @@ public static class Libp2pMetrics
     // --- Error metrics ---
     public static readonly Counter<long> Errors =
         Meter.CreateCounter<long>("libp2p.errors", description: "Total errors encountered");
+
+    // --- Lifecycle metrics ---
+    public static readonly Counter<long> ConnectionStateTransitions =
+        Meter.CreateCounter<long>("libp2p.connections.state_transitions", description: "Total connection state machine transitions");
+
+    public static readonly Counter<long> ReconnectAttempts =
+        Meter.CreateCounter<long>("libp2p.connections.reconnect_attempts", description: "Total connection reconnection attempts");
 }

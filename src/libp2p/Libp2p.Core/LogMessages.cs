@@ -136,4 +136,40 @@ internal static partial class LogMessages
         string protocol,
         Exception? exception,
         string errorMessage);
+
+    [LoggerMessage(
+        EventId = EventId + 20,
+        EventName = nameof(ConnectionStateChanged),
+        Message = "Connection {sessionId} changed state from {previousState} to {currentState}",
+        Level = LogLevel.Debug,
+        SkipEnabledCheck = true)]
+    internal static partial void ConnectionStateChanged(
+        this ILogger logger,
+        string sessionId,
+        string previousState,
+        string currentState);
+
+    [LoggerMessage(
+        EventId = EventId + 21,
+        EventName = nameof(ConnectionTransitionFailed),
+        Message = "Connection {sessionId} failed transition from {currentState} to {targetState}",
+        Level = LogLevel.Warning,
+        SkipEnabledCheck = true)]
+    internal static partial void ConnectionTransitionFailed(
+        this ILogger logger,
+        string sessionId,
+        string currentState,
+        string targetState);
+
+    [LoggerMessage(
+        EventId = EventId + 22,
+        EventName = nameof(ConnectionFailed),
+        Message = "Connection {sessionId} failed: {errorMessage}",
+        Level = LogLevel.Error,
+        SkipEnabledCheck = true)]
+    internal static partial void ConnectionFailed(
+        this ILogger logger,
+        string sessionId,
+        string errorMessage,
+        Exception? exception);
 }

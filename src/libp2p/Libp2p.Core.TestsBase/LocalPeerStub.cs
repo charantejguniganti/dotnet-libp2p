@@ -68,6 +68,9 @@ public class TestRemotePeer : ISession
 
     public Activity? Activity => throw new NotImplementedException();
 
+    public ConnectionState ConnectionState => ConnectionState.Connected;
+    public event EventHandler<ConnectionStateChangedEventArgs>? ConnectionStateChanged;
+
     public Task DialAsync<TProtocol>(CancellationToken token = default) where TProtocol : ISessionProtocol
     {
         return Task.CompletedTask;

@@ -187,11 +187,13 @@ public partial class LocalPeer(Identity identity, PeerStore peerStore, IProtocol
         {
             if (t.IsFaulted)
             {
+                var initEx = t.Exception?.InnerException ?? t.Exception;
+                session.TryTransitionSafe(ConnectionState.Failed, initEx);
                 _ = session.DisconnectAsync();
                 _logger?.LogError(t.Exception.InnerException, $"Disconnecting due to exception");
                 return;
             }
-            session.ConnectedTcs.TrySetResult();
+            session.MarkAsConnected();
             OnConnected?.Invoke(session);
         });
         return new NewSessionContext(this, session, proto, isListener, null, activitySource, activity, loggerFactory);
@@ -324,6 +326,7 @@ public partial class LocalPeer(Identity identity, PeerStore peerStore, IProtocol
         }
 
         Session session = new(this);
+        session.TryTransitionSafe(ConnectionState.Connecting);
         ITransportContext ctx = new DialerTransportContext(this, session, dialerProtocol, dialActivity);
 
         Task dialingTask = transportProtocol.DialAsync(ctx, addr, token);
@@ -337,11 +340,15 @@ public partial class LocalPeer(Identity identity, PeerStore peerStore, IProtocol
             Libp2pMetrics.DialFailures.Add(1);
             if (dialingResult.IsFaulted)
             {
+                var dialEx = dialingResult.Exception?.InnerException ?? dialingResult.Exception;
+                session.TryTransitionSafe(ConnectionState.Failed, dialEx);
                 dialActivity?.SetStatus(ActivityStatusCode.Error, dialingResult.Exception.Message);
                 dialActivity?.Dispose();
                 throw dialingResult.Exception;
             }
-            throw new Libp2pException("Not able to dial the peer");
+            var failedEx = new Libp2pException("Not able to dial the peer");
+            session.TryTransitionSafe(ConnectionState.Failed, failedEx);
+            throw failedEx;
         }
 
         double elapsedMs = Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds;
